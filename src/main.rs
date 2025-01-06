@@ -1,4 +1,8 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use dotenv::dotenv;
+
+mod database;
+mod file;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -16,8 +20,13 @@ async fn manual_hello() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    dotenv().ok();
+
+    let db = database::mongo::MongoDB::init().await.db;    
+
+    HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(db.clone()))
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
