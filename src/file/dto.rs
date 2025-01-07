@@ -1,3 +1,4 @@
+use mongodb::action::gridfs::FindOne;
 use serde::{Deserialize, Serialize};
 
 use super::domain::FileModel;
@@ -16,6 +17,13 @@ pub struct CreateFileResponse {
 }
 
 #[derive(Serialize)]
+pub struct FindOneFileResponse {
+    pub id: String,
+    pub file_name: String,
+    pub file_url: String,
+}
+
+#[derive(Serialize)]
 pub struct FindAllFileResponse {
-    pub files: Vec<FileModel>,
+    pub files: Vec<FindOneFileResponse>,
 }

@@ -1,7 +1,7 @@
 use actix_web::{error::ErrorInternalServerError, Error};
 use async_trait::async_trait;
 use futures::StreamExt;
-use super::{domain::new_file_model, dto::{CreateFileRequest, CreateFileResponse, FindAllFileResponse}, repository::{FileRepository, FileRepositoryTrait}};
+use super::{domain::new_file_model, dto::{CreateFileRequest, CreateFileResponse, FindAllFileResponse, FindOneFileResponse}, repository::{FileRepository, FileRepositoryTrait}};
 
 
 pub struct FileUsecase {
@@ -51,7 +51,13 @@ impl FileUsecaseTrait for FileUsecase {
             Ok(mut cursor) => {
                 let mut files = vec![];
                 while let Some(file) = cursor.next().await {
-                    files.push(file.unwrap());
+                    if let Ok(file) = file {
+                        files.push(FindOneFileResponse {
+                            id: file.id.map(|id| id.to_string()).unwrap_or_default(),
+                            file_name: file.file_name.clone(),
+                            file_url: file.file_url.clone(),
+                        });
+                    }
                 }
                 Ok(FindAllFileResponse { files })
             }
