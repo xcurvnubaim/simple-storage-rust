@@ -1,6 +1,7 @@
 use actix_web::{error::ErrorInternalServerError, Error};
 use async_trait::async_trait;
-use super::{domain::new_file_model, dto::{CreateFileRequest, CreateFileResponse}, repository::{FileRepository, FileRepositoryTrait}};
+use futures::StreamExt;
+use super::{domain::new_file_model, dto::{CreateFileRequest, CreateFileResponse, FindAllFileResponse}, repository::{FileRepository, FileRepositoryTrait}};
 
 
 pub struct FileUsecase {
@@ -11,7 +12,7 @@ pub struct FileUsecase {
 pub trait FileUsecaseTrait {
     fn new(repository: FileRepository) -> Self;
     async fn create(&self, file: CreateFileRequest) -> Result<CreateFileResponse, Error>;
-    // async fn find_all(&self) -> Vec<FileModel>;
+    async fn find_all(&self) -> Result<FindAllFileResponse, Error>;
 }
 
 #[async_trait]
@@ -44,7 +45,20 @@ impl FileUsecaseTrait for FileUsecase {
         }
     }
 
-    // async fn find_all(&self) -> Vec<FileModel> {
-    //     self.repository.find_all().await
-    // }
+    async fn find_all(&self) -> Result<FindAllFileResponse, Error> {
+        let files = self.repository.find_all().await;
+        match files {
+            Ok(mut cursor) => {
+                let mut files = vec![];
+                while let Some(file) = cursor.next().await {
+                    files.push(file.unwrap());
+                }
+                Ok(FindAllFileResponse { files })
+            }
+            Err(e) => Err(ErrorInternalServerError(format!(
+                "Failed to find all files: {}",
+                e
+            ))),
+        }
+    }
 }

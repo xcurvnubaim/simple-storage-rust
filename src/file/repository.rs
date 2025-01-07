@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use mongodb::{results::InsertOneResult, Collection, Database};
+use mongodb::{bson::doc, results::InsertOneResult, Collection, Database, Cursor};
 
 use super::domain::FileModel;
 
@@ -12,7 +12,7 @@ pub struct FileRepository {
 pub trait FileRepositoryTrait {
     fn new(db: Database) -> Self;
     async fn create(&self, file: FileModel) -> Result<InsertOneResult, mongodb::error::Error>;
-    // async fn find_all(&self) -> Vec<FileModel>;
+    async fn find_all(&self) -> Result<Cursor<FileModel>, mongodb::error::Error>;
 }
 
 #[async_trait]
@@ -27,10 +27,9 @@ impl FileRepositoryTrait for FileRepository {
         Ok(res)
     }
 
-    // async fn find_all(&self) -> Vec<FileModel> {
-    //     let cursor = self.collection.find(None, None).await.unwrap();
-    //     cursor
-    //         .map(|doc| bson::from_document(doc.unwrap()).unwrap())
-    //         .collect()
-    // }
+    
+    async fn find_all(&self) -> Result<Cursor<FileModel>, mongodb::error::Error> {
+        let cursor = self.collection.find(doc! {}).await?;
+        Ok(cursor)
+    }
 }

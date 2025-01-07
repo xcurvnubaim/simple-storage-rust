@@ -7,6 +7,8 @@ use crate::file::{
     usecase::{FileUsecase, FileUsecaseTrait},
 };
 
+use super::dto::FindAllFileResponse;
+
 pub struct FileHandler {
     pub usecase: FileUsecase,
 }
@@ -27,6 +29,17 @@ impl FileHandler {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn find_all(
+        data: web::Data<Self>,
+    ) -> Result<web::Json<FindAllFileResponse>, Error> {
+        println!("Find all files");
+        let res = data.usecase.find_all().await;
+        match res {
+            Ok(data) => Ok(web::Json(data)),
+            Err(e) => Err(e),
+        }
+    }
 }
 
 pub fn file_routes(db: Database) -> Scope {
@@ -37,4 +50,5 @@ pub fn file_routes(db: Database) -> Scope {
     web::scope("/file")
         .app_data(file_handler.clone())
         .route("", web::post().to(FileHandler::create))
+        .route("", web::get().to(FileHandler::find_all))
 }
