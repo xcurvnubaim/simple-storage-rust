@@ -1,5 +1,6 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
+use database::mongo::MongoDBTrait;
 
 mod database;
 mod file;
@@ -24,14 +25,14 @@ async fn main() -> std::io::Result<()> {
 
     let db = database::mongo::MongoDB::init().await.db;    
 
+    // Start the Actix Web server
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(db.clone()))
-            .service(hello)
-            .service(echo)
-            .route("/hey", web::get().to(manual_hello))
+            .configure(|cfg| {
+                cfg.service(file::handler::file_routes(db.clone()));
+            })
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 8080))? // Bind to localhost and port 8080
     .run()
     .await
 }
