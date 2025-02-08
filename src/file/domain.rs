@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
-use mongodb::bson::oid::ObjectId;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FileModel {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
+    pub id: Option<i64>,
     pub file_name: String,
     pub file_url: String,
 }

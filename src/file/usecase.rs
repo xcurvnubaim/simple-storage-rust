@@ -1,8 +1,10 @@
+use super::{
+    domain::new_file_model,
+    dto::{CreateFileRequest, CreateFileResponse, FindAllFileResponse, FindOneFileResponse},
+    repository::{FileRepository, FileRepositoryTrait},
+};
 use actix_web::{error::ErrorInternalServerError, Error};
 use async_trait::async_trait;
-use futures::StreamExt;
-use super::{domain::new_file_model, dto::{CreateFileRequest, CreateFileResponse, FindAllFileResponse, FindOneFileResponse}, repository::{FileRepository, FileRepositoryTrait}};
-
 
 pub struct FileUsecase {
     pub repository: FileRepository,
@@ -33,8 +35,8 @@ impl FileUsecaseTrait for FileUsecase {
         let file_model = new_file_model(file_name.clone(), file_url.clone());
         let res = self.repository.create(file_model).await;
         match res {
-            Ok(_) => Ok(CreateFileResponse {
-                id: "123".to_string(),
+            Ok(id) => Ok(CreateFileResponse {
+                id: id.to_string(),
                 file_name: file_name,
                 file_url: file_url,
             }),
@@ -48,16 +50,14 @@ impl FileUsecaseTrait for FileUsecase {
     async fn find_all(&self) -> Result<FindAllFileResponse, Error> {
         let files = self.repository.find_all().await;
         match files {
-            Ok(mut cursor) => {
+            Ok(rows) => {
                 let mut files = vec![];
-                while let Some(file) = cursor.next().await {
-                    if let Ok(file) = file {
-                        files.push(FindOneFileResponse {
-                            id: file.id.map(|id| id.to_string()).unwrap_or_default(),
-                            file_name: file.file_name.clone(),
-                            file_url: file.file_url.clone(),
-                        });
-                    }
+                for row in rows {
+                    files.push(FindOneFileResponse {
+                        id: row.id.unwrap(),
+                        file_name: row.file_name,
+                        file_url: row.file_url,
+                    });
                 }
                 Ok(FindAllFileResponse { files })
             }
