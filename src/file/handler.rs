@@ -1,3 +1,4 @@
+use actix_multipart::form::MultipartForm;
 use actix_web::{web, Error};
 use rusqlite::Connection;
 use std::sync::{Arc, Mutex};
@@ -21,9 +22,9 @@ impl FileHandler {
 
     pub async fn create(
         data: web::Data<Self>,
-        file: web::Json<CreateFileRequest>,
+        file: MultipartForm<CreateFileRequest>,
     ) -> Result<web::Json<CreateFileResponse>, Error> {
-        println!("Create file");
+        println!("Create file {}", file.file_name.as_str());
         let res = data.usecase.create(file.into_inner()).await;
         match res {
             Ok(data) => Ok(web::Json(data)),

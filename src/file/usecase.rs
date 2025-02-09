@@ -24,21 +24,22 @@ impl FileUsecaseTrait for FileUsecase {
     }
 
     async fn create(&self, file: CreateFileRequest) -> Result<CreateFileResponse, Error> {
+        println!("{:?}", file);
         // Validate input fields
-        let file_name = file
-            .file_name
-            .ok_or_else(|| ErrorInternalServerError("file_name is required"))?;
-        let file_url = file
-            .file_url
-            .ok_or_else(|| ErrorInternalServerError("file_url is required"))?;
+        // let file_name = file
+        //     .file_name
+        //     .ok_or_else(|| ErrorInternalServerError("file_name is required"))?;
+        // let file_url = file
+        //     .file_url
+        //     .ok_or_else(|| ErrorInternalServerError("file_url is required"))?;
 
-        let file_model = new_file_model(file_name.clone(), file_url.clone());
+        let file_model = new_file_model(file.file_name.clone(), file.file_url.clone());
         let res = self.repository.create(file_model).await;
         match res {
             Ok(id) => Ok(CreateFileResponse {
                 id: id.to_string(),
-                file_name: file_name,
-                file_url: file_url,
+                file_name: file.file_name.as_str().to_string(),
+                file_url: file.file_url.as_str().to_string(),
             }),
             Err(e) => Err(ErrorInternalServerError(format!(
                 "Failed to create file: {}",
