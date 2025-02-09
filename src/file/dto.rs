@@ -1,11 +1,11 @@
-use actix_multipart::form::{text::Text, MultipartForm};
+use actix_multipart::form::{bytes::Bytes, tempfile::TempFile, text::Text, MultipartForm};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, MultipartForm)]
 pub struct CreateFileRequest {
     pub file_name: Text<String>,
     pub file_url: Text<String>,
-    // pub file: Vec<u8>,
+    pub file: TempFile,
 }
 
 #[derive(Serialize)]

@@ -1,3 +1,5 @@
+use std::fs;
+
 use super::{
     domain::new_file_model,
     dto::{CreateFileRequest, CreateFileResponse, FindAllFileResponse, FindOneFileResponse},
@@ -32,7 +34,11 @@ impl FileUsecaseTrait for FileUsecase {
         // let file_url = file
         //     .file_url
         //     .ok_or_else(|| ErrorInternalServerError("file_url is required"))?;
+        let path = format!("uploads/{}.pdf", file.file_name.as_str());
+        let mut dest = fs::File::create(&path)?;
+        let mut src = file.file.file.reopen()?; // Reopen the temp file
 
+        std::io::copy(&mut src, &mut dest)?;
         let file_model = new_file_model(file.file_name.clone(), file.file_url.clone());
         let res = self.repository.create(file_model).await;
         match res {
