@@ -1,7 +1,8 @@
+use actix_files::NamedFile;
 use actix_multipart::form::MultipartForm;
-use actix_web::{web, Error};
+use actix_web::{web, Error, HttpRequest};
 use rusqlite::Connection;
-use std::sync::{Arc, Mutex};
+use std::{path::PathBuf, sync::{Arc, Mutex}};
 
 use crate::file::{
     dto::{CreateFileRequest, CreateFileResponse},
@@ -40,6 +41,12 @@ impl FileHandler {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn get_file(data: web::Data<Self>, req: HttpRequest) -> actix_web::Result<NamedFile> {
+        println!("Find all files");
+        let path: PathBuf = req.match_info().query("filename").parse().unwrap();
+        Ok(NamedFile::open(path)?)
+    }
 }
 
 pub fn file_routes(cfg: &mut web::ServiceConfig, db: Arc<Mutex<Connection>>) {
@@ -51,6 +58,7 @@ pub fn file_routes(cfg: &mut web::ServiceConfig, db: Arc<Mutex<Connection>>) {
         web::scope("/file")
             .app_data(file_handler.clone())
             .route("", web::post().to(FileHandler::create))
-            .route("", web::get().to(FileHandler::find_all)),
+            .route("", web::get().to(FileHandler::find_all))
+            .route("/{filename:.*}", web::get().to(FileHandler::get_file))
     );
 }
