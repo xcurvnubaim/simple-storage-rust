@@ -35,7 +35,7 @@ impl FileUsecaseTrait for FileUsecase {
         //     .file_url
         //     .ok_or_else(|| ErrorInternalServerError("file_url is required"))?;
         let id = Uuid::new_v4();
-        let path = format!("uploads/{}", id);
+        let path = format!("uploads/{}_{}", id, file.file.file_name.unwrap());
         let mut dest = fs::File::create(&path)?;
         let mut src = file.file.file.reopen()?; // Reopen the temp file
 
@@ -45,8 +45,8 @@ impl FileUsecaseTrait for FileUsecase {
         match res {
             Ok(id) => Ok(CreateFileResponse {
                 id: id.to_string(),
-                file_name: file.file_name.as_str().to_string(),
-                file_url: file.file_url.as_str().to_string(),
+                file_name: file.file_name.to_string(),
+                file_url: path,
             }),
             Err(e) => Err(ErrorInternalServerError(format!(
                 "Failed to create file: {}",

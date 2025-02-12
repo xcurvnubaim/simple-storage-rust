@@ -1,6 +1,6 @@
 use actix_files::NamedFile;
 use actix_multipart::form::MultipartForm;
-use actix_web::{web, Error, HttpRequest};
+use actix_web::{http::header::{ContentDisposition, DispositionType}, web, Error, HttpRequest};
 use rusqlite::Connection;
 use std::{path::PathBuf, sync::{Arc, Mutex}};
 
@@ -45,7 +45,14 @@ impl FileHandler {
     pub async fn get_file(data: web::Data<Self>, req: HttpRequest) -> actix_web::Result<NamedFile> {
         println!("Find all files");
         let path: PathBuf = req.match_info().query("filename").parse().unwrap();
-        Ok(NamedFile::open(path)?)
+    
+        let file = NamedFile::open(path)?;
+        let file = file.set_content_disposition(ContentDisposition {
+            disposition: DispositionType::Attachment,
+            parameters: vec![],
+        });
+    
+        Ok(file)
     }
 }
 

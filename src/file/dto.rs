@@ -8,7 +8,7 @@ pub struct CreateFileRequest {
     pub file: TempFile,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct CreateFileResponse {
     pub id: String,
     pub file_name: String,
