@@ -1,8 +1,7 @@
 use actix_web::{web, App, HttpServer};
 use database::sqlite::{SqliteDB, SqliteDBTrait};
 use dotenv::dotenv;
-use std::sync::{Arc, Mutex};
-
+use std::{sync::{Arc, Mutex}};
 mod database;
 mod file;
 
@@ -16,6 +15,7 @@ async fn main() -> std::io::Result<()> {
     // Start the Actix Web server
     HttpServer::new(move || {
         App::new()
+            .service(actix_files::Files::new("/public", ".").show_files_listing()) // Serve static files
             .app_data(web::Data::new(db.clone())) // Store shared DB connection
             .configure(|cfg| file::handler::file_routes(cfg, db.clone())) // Pass it to handlers
     })
